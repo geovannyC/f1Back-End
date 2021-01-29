@@ -15,8 +15,8 @@ app.use(bodyParser.urlencoded({
     extended: false
 }))
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+  origin: '*',
+  credentials: true
 }))
 app.use(morgan('dev'));
 app.use(bodyParser.json())
@@ -35,10 +35,9 @@ io.on("connection", (socket) => {
     if (interval) {
       clearInterval(interval);
     }
-    interval = setInterval(() => usuarioControl.getApiAndEmit(socket), 59000);
+    interval = setInterval(() => usuarioControl.getApiAndEmit(socket), 50000);
     socket.on("disconnect", () => {
       console.log("Client disconnected");
       clearInterval(interval);
     });
   });
-

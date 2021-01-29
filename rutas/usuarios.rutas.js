@@ -11,5 +11,6 @@ api.post('/createUser', usuarioControl.setUser)
 api.post('/ordenarpedido', usuarioControl.setOrder)
 api.post('/actualizarOrdenes', usuarioControl.updateOrders)
 api.post('/findEmail', usuarioControl.findEmail)
+api.post('/cancelarOrden', usuarioControl.updateStateOrder)
 
 module.exports = api

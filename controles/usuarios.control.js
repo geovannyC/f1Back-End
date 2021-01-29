@@ -1,16 +1,14 @@
 ;
 'use strict'
 
-const socketIo = require("socket.io");
 require('dotenv').config();
 const mongodb = require('../models/models'),
     bcrypt = require('bcrypt'),
-    nodeMailer = require('nodemailer'),
-    io = require('../setup/app');
-    
+    nodeMailer = require('nodemailer');
     
     const USER = process.env.USER
     const PASS = process.env.PASS
+
 let transporter = nodeMailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -25,8 +23,16 @@ let transporter = nodeMailer.createTransport({
   const prueba = (req, res)=>{
     res.status(200).send('Hola api')
 }
-const base = require('../config/db');
-const { mongo } = require("../config/db");
+const updateStateOrder = (req, res) =>{
+  mongodb.Orders.findByIdAndUpdate(req.body.id, {estado: req.body.estado}, (err,doc)=>{
+    if(err){
+      res.status(404).send('error en el servidor')
+    }else{
+      res.status(200)
+      res.json('actualizado exitosamente')
+    }
+  })
+}
 const setUser = async(req, res)=>{
     const saltRounds = 10
     bcrypt.hash(req.body.contra, saltRounds, (err, hash)=>{
@@ -144,43 +150,55 @@ const getApiAndEmit = socket => {
   dataF.pop()
   socket.emit("FromAPI", date);
 
-  
+  console.log(date)
   mongodb.Orders.find().then((response)=>{
+    
     if(response.length===0){
       return null
     }else{
       response.map((item)=>{
         
-        let fechaArribo= item.fechaArribo.split('.')[0].split(':')
-        fechaArribo.pop()
-       
-        if(fechaArribo[0]===dataF[0]&& fechaArribo[1]===dataF[1]){
-          console.log('Tu pedido ha llegado')
-          mongodb.Persons.findById(item.usuario).then((response)=>{
-            console.log(item.ciudadsalida)
-                      let mailOptions = {
-    to: response.correo,
-    subject: `Felicitaciones tu pedido de ${item.ciudadsalida} ha llegado`,
-    text: 'La app Route Software te informa que tu pedido ha llegado con exito, en cuanto lo tengas confirma si llegada en nuestra app!',
-};
-
-transporter.sendMail(mailOptions, (err, info) => {
- 
-  if(err){
-    console.log('error servidor')
-    console.log(err)
-  }else{
-
-    console.log('mensaje enviado')
-  }
-});
-          })
-
+        if(item.estado==='pendiente'){
+          
+          let fechaArribo= item.fechaArribo.split('.')[0].split(':')
+          fechaArribo.pop()
+         
+          if(fechaArribo[0]===dataF[0]&& fechaArribo[1]===dataF[1]){
+            mongodb.Orders.findByIdAndUpdate(item._id,{estado: 'entregado'}, (err, doc)=>{
+              if(err){
+                return console.log('error al actualizar')
+              }else{
+                return console.log('actualizado')
+              }
+            })
+            console.log('Tu pedido ha llegado')
+            mongodb.Persons.findById(item.usuario).then((response)=>{
+              console.log(item.ciudadsalida)
+            let mailOptions = {
+                to: response.correo,
+                subject: `Felicitaciones tu pedido de ${item.ciudadsalida} ha llegado`,
+                text: 'La app Route Software te informa que tu pedido ha llegado con exito',
+            };
+  
+            transporter.sendMail(mailOptions, (err, info) => {
+   
+            if(err){
+              console.log('error servidor')
+              console.log(err)
+            }else{
+  
+              console.log('mensaje enviado')
+            }
+          });
+                    })
+  
+                  }
         }
-      })
-    }
-  })
-};
+
+              })
+            }
+          })
+        };
 
 const getOrder = async(req, res)=>{
    
@@ -218,6 +236,7 @@ module.exports={
     updateOrders,
     login,
     findEmail,
-    getApiAndEmit
+    getApiAndEmit,
+    updateStateOrder
   
 }
