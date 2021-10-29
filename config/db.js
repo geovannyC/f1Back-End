@@ -3,7 +3,7 @@
 'use strict'
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/leafletproject', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false  })
+mongoose.connect('mongodb://localhost:27017/f1', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false  })
     .then(() => {
         console.log("La conexión a la base de datos se ha realizado correctamente")
     
