@@ -2,38 +2,47 @@
 const { text } = require("body-parser");
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
-const record = Schema(
+const reservationsSchema = Schema(
   {
-    Hamilton: Number,
-    Bottas: Number,
-    Verstappen: Number,
-    Perez: Number,
-    Ricciardo: Number,
-    Norris: Number,
-    Vettel: Number,
-    Stroll: Number,
-    Alonso: Number,
-    Ocon: Number,
-    Leclerc: Number,
-    Sainz: Number,
-    Gasly: Number,
-    Tsunoda: Number,
-    Raikkonen: Number,
-    Giovinazzi: Number,
-    Schumacher: Number,
-    Russell: Number,
-    Mazepin: Number,
-    Latifi: Number,
-    pista: String,
-    vuelta: String,
-    pvuelta: {
-      type: mongoose.Schema.ObjectId,
-      ref: "profile",
+    cancelled: { default: false, type: Boolean },
+    paid: { default: true, type: Boolean },
+    paymentMethod: String,
+    total: Number,
+    user: { ref: "users", type: Schema.Types.ObjectId },
+    currency: String,
+    confirmed: { type: Boolean, default: false },
+    code: String,
+    cancelledAt: Date,
+    summary: {
+      people: Number,
+      languages: String,
+      date: Date,
+      amount: String,
+      currency: String,
+      symbol: String,
     },
-    championship: {
-      type: mongoose.Schema.ObjectId,
-      ref: "championship",
+    receipt: String,
+    invoice: String,
+  },
+  { timestamps: true }
+);
+const userSchema = Schema(
+  {
+    avatar: { type: String },
+    birthdate: Date,
+    city: String,
+    country: String,
+    deleted: { default: false, type: Boolean },
+    email: {
+      lowercase: true,
+      required: true,
+      type: String,
+      trim: true,
     },
+    firstName: String,
+    lastName: String,
+    phone: String,
+    prefix: String,
   },
   { timestamps: true }
 );
@@ -149,7 +158,7 @@ const driverVitae = Schema(
     timestamps: true,
   }
 );
-const fasLapDriver =Schema({
+const fasLapDriver = Schema({
   piloto: {
     type: mongoose.Schema.ObjectId,
     ref: "driver",
@@ -163,7 +172,7 @@ const fasLapDriver =Schema({
     ref: "championship",
   },
   time: Array,
-  posicion: Number
+  posicion: Number,
 });
 const driver = Schema(
   {
@@ -194,6 +203,8 @@ const scuderias = Schema(
     logo: String,
     victorias: Number,
     doblete: Number,
+    pColor: String,
+    sColor: String,
   },
   {
     timestamps: true,
@@ -243,6 +254,8 @@ const Track = mongoose.model("track", track),
   Scuderia = mongoose.model("scuderias", scuderias),
   Championship = mongoose.model("championship", championship),
   TracksChampionship = mongoose.model("tracksChampionship", tracksChampionship),
+  Reservations = mongoose.model("reservations", reservationsSchema),
+  Users = mongoose.model("users", userSchema),
   ScuderiasChampionship = mongoose.model(
     "scuderiasChampionship",
     scuderiasChampionship
@@ -251,13 +264,11 @@ const Track = mongoose.model("track", track),
     "championshipScuderia",
     championshipScuderia
   ),
-  ChampionshipDriver = mongoose.model(
-    "championshipdriver",
-    championshipdriver
-  );
-
+  ChampionshipDriver = mongoose.model("championshipdriver", championshipdriver);
 
 module.exports = {
+  Reservations,
+  Users,
   Track,
   Driver,
   Scuderia,
@@ -267,5 +278,5 @@ module.exports = {
   DriverVitae,
   FasLapDriver,
   ChampionshipScuderia,
-  ChampionshipDriver
+  ChampionshipDriver,
 };

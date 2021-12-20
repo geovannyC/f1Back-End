@@ -23,7 +23,10 @@ api.get('/find-championship-scuderia/:scuderia/:championship', controll.findCham
 api.get('/find-championship-driver/:driver/:championship', controll.findChampionshipDriver)
 api.get('/find-all-drivers-championship/:championship', controll.findPointsDriverChampionship)
 api.get('/find-all-scuderias-championship/:championship', controll.findAllScuderiasChampionship)
+api.get('/get-ByUserId-Reservation', controll.getByUserIdReservation)
 
+api.post('/create-new-user', controll.setNewUser)
+api.post('/create-new-reservation', controll.setNewReservation)
 api.post('/create-championship', controll.createChampionship)
 api.post('/create-record', controll.createRecord)
 api.post('/create-user', controll.createProfile)

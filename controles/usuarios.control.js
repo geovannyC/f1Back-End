@@ -1,6 +1,7 @@
 ("use strict");
 
 require("dotenv").config();
+const { mongo } = require("mongoose");
 const mongodb = require("../models/models"),
   fs = require("fs");
 
@@ -89,8 +90,9 @@ const createProfileChampionship = (req, res) => {
 };
 const findChampionship = (req, res) => {
   mongodb.Championship.find((err, doc) => {
-    if (err) {
-      res.status(204);
+    if (err || doc.length<1) {
+      console.log(doc.length)
+      res.status(204)
       res.json("fallo en el servidor");
     } else {
       res.status(200);
@@ -472,7 +474,7 @@ const findAllScuderiasChampionship = (req, res) => {
 const findChampionshipDriver = (req, res) => {
   mongodb.ChampionshipDriver.find({
     piloto: req.params.driver,
-    championship: req.params.championship
+    championship: req.params.championship,
   })
     .populate({
       path: "piloto",
@@ -481,7 +483,7 @@ const findChampionshipDriver = (req, res) => {
       path: "championship",
     })
     .exec((err, doc) => {
-      if (err||doc.length==0) {
+      if (err || doc.length == 0) {
         res.status(204);
         res.json("fallo en el servidor");
       } else {
@@ -492,7 +494,7 @@ const findChampionshipDriver = (req, res) => {
 };
 const findPointsDriverChampionship = (req, res) => {
   mongodb.ChampionshipDriver.find({
-    championship: req.params.championship
+    championship: req.params.championship,
   })
     .populate({
       path: "piloto",
@@ -501,7 +503,7 @@ const findPointsDriverChampionship = (req, res) => {
       path: "championship",
     })
     .exec((err, doc) => {
-      if (err||doc.length==0) {
+      if (err || doc.length == 0) {
         res.status(204);
         res.json("fallo en el servidor");
       } else {
@@ -522,7 +524,7 @@ const findChampionshipScuderia = (req, res) => {
       path: "championship",
     })
     .exec((err, doc) => {
-      if (err||doc.length==0) {
+      if (err || doc.length == 0) {
         res.status(204);
         res.json("fallo en el servidor");
       } else {
@@ -646,7 +648,7 @@ const updateChampionshipDriver = (req, res) => {
     req.body,
     (err, doc) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         res.status(204);
         res.json("fallo en el servidor");
       } else {
@@ -656,8 +658,97 @@ const updateChampionshipDriver = (req, res) => {
     }
   );
 };
-
+const setNewUser = (req, res) => {
+  mongodb.Users.create(req.body, (err, doc) => {
+    if (err || doc.length === 0) {
+      return res.status(400).send({
+        //Contenido error en la petición
+        message:
+          err.name === "MongoError" && err.code === 11000
+            ? "Server Failure"
+            : err,
+      });
+    } else {
+      return res.status(200).send("creado exitosamente");
+    }
+  });
+};
+const setNewReservation = (req, res) => {
+  mongodb.Reservations.create(req.body, (err, doc) => {
+    if (err || doc.length === 0) {
+      return res.status(400).send({
+        //Contenido error en la petición
+        message:
+          err.name === "MongoError" && err.code === 11000
+            ? "Server Failure"
+            : err,
+      });
+    } else {
+      return res.status(200).send("creado exitosamente");
+    }
+  });
+};
+// router.get("/get-byuserid-reservation", getByUserIdReservation);
+// router.get("/get-byuserid-cancelled-Reservation", getByUserIdCancelledReservation);
+const getByUserIdReservation = (req, res) => {
+  const tempId = "5e1b8d3031cfad3d44f81cc6 ";
+  mongodb.Reservations.find({
+    user: tempId /*req.body.user._id */,
+    paid: true,
+    cancelled: false,
+  })
+    .sort("summary.date")
+    .select("summary paid cancelled ")
+    .populate({
+      path: "user",
+      select: "firstName lastName email",
+    })
+    .exec((err, doc) => {
+      console.log(err);
+      if (err || !doc) {
+        return res.status(400).send({
+          //Contenido error en la petición
+          message:
+            err.name === "MongoError" && err.code === 11000
+              ? "Server Failure"
+              : err,
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    });
+};
+const getByUserIdCancelledReservation = (req, res) => {
+  mongodb.Reservations.find({
+    cancelled: true,
+  })
+    .sort("summary.date")
+    .select("summary cancelled cancelledAt")
+    .populate({
+      path: "user",
+      select: "firstName lastName email",
+    })
+    .exec((err, doc) => {
+      console.log(err);
+      if (err || !doc) {
+        return res.status(400).send({
+          //Contenido error en la petición
+          message:
+            err.name === "MongoError" && err.code === 11000
+              ? "Server Failure"
+              : err,
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    });
+};
 module.exports = {
+  getByUserIdReservation,
+  setNewReservation,
+  setNewUser,
   prueba,
   findChampionshipDriver,
   createChampionshipDriver,
@@ -701,5 +792,5 @@ module.exports = {
   createChampionshipScuderia,
   findPointsDriverChampionship,
   findAllScuderiasChampionship,
-  findChampionshipScuderias
+  findChampionshipScuderias,
 };
