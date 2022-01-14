@@ -247,7 +247,14 @@ const championshipdriver = Schema(
     timestamps: true,
   }
 );
+const ondaWords = Schema(
+  {
+    word: String,
+    onda: String,
+  }
+);
 const Track = mongoose.model("track", track),
+  OndaWords = mongoose.model("ondaWords", ondaWords),
   Driver = mongoose.model("driver", driver),
   DriverVitae = mongoose.model("driverVitae", driverVitae),
   FasLapDriver = mongoose.model("fasLapDriver", fasLapDriver),
@@ -267,6 +274,7 @@ const Track = mongoose.model("track", track),
   ChampionshipDriver = mongoose.model("championshipdriver", championshipdriver);
 
 module.exports = {
+  OndaWords,
   Reservations,
   Users,
   Track,

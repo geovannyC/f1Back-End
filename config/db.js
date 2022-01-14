@@ -1,28 +1,23 @@
 ("use strict");
-require('dotenv').config();
+require("dotenv").config();
 const mongoose = require("mongoose");
 const username = process.env.USER;
 const password = process.env.PWD;
 const cluster = process.env.CLUSTER;
 const dbname = process.env.DBNAME;
-const uri = `mongodb+srv://${username}:${password}@${cluster}.pekvd.mongodb.net/${dbname}`
+const db = "mongodb://localhost:27017/f1";
 
 mongoose.Promise = global.Promise;
-console.log(username)
-mongoose
-  .connect(
-    uri,
-    {
-      useNewUrlParser: true,
-      useFindAndModify: false,
-      useUnifiedTopology: true,
-    }
-  )
-  .then(() => {
+mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    console.log("La conexión a la base de datos se ha realizado correctamente");
+const conSuccess = mongoose.connection;
+conSuccess.once("open", (_) => {
+  console.log("Database connected:", db);
+});
 
-    // CREAR EL SERVIDOR WEB CON NODEJS
+conSuccess
+  .on("error", (err) => {
+    console.error("connection error:", err);
   })
   // Si no se conecta correctamente escupimos el error
   .catch((err) => console.log(err));

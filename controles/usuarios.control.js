@@ -2,9 +2,10 @@
 
 require("dotenv").config();
 const { mongo } = require("mongoose");
+const jwt = require("jsonwebtoken");
 const mongodb = require("../models/models"),
-  fs = require("fs");
-
+  fs = require("fs"),
+  bcrypt = require("bcrypt");
 const prueba = (req, res) => {
   res.status(200).send("Hola api");
 };
@@ -90,9 +91,9 @@ const createProfileChampionship = (req, res) => {
 };
 const findChampionship = (req, res) => {
   mongodb.Championship.find((err, doc) => {
-    if (err || doc.length<1) {
-      console.log(doc.length)
-      res.status(204)
+    if (err || doc.length < 1) {
+      console.log(doc.length);
+      res.status(204);
       res.json("fallo en el servidor");
     } else {
       res.status(200);
@@ -154,6 +155,7 @@ const convertBase64 = (dir) => {
     resolve(bs64);
   });
 };
+
 const getImagesPilots = async (req, res) => {
   const name = req.params.name;
   const dir = `./f1photos/${name}/`;
@@ -704,7 +706,6 @@ const getByUserIdReservation = (req, res) => {
       select: "firstName lastName email",
     })
     .exec((err, doc) => {
-      console.log(err);
       if (err || !doc) {
         return res.status(400).send({
           //Contenido error en la petición
@@ -719,33 +720,121 @@ const getByUserIdReservation = (req, res) => {
       }
     });
 };
-const getByUserIdCancelledReservation = (req, res) => {
-  mongodb.Reservations.find({
-    cancelled: true,
-  })
-    .sort("summary.date")
-    .select("summary cancelled cancelledAt")
-    .populate({
-      path: "user",
-      select: "firstName lastName email",
-    })
+const getRandomOndaWord = (req, res) => {
+  mongodb.OndaWords.find()
+    .select("word")
     .exec((err, doc) => {
-      console.log(err);
-      if (err || !doc) {
-        return res.status(400).send({
-          //Contenido error en la petición
-          message:
-            err.name === "MongoError" && err.code === 11000
-              ? "Server Failure"
-              : err,
-        });
+      if (err || doc.length === 0) {
+        console.log(err);
+        res.status(204);
+        res.json("fallo en el servidor");
+      } else {
+        const getRandomResult = doc[Math.floor(Math.random() * doc.length)];
+        res.status(200);
+        res.json(getRandomResult);
+      }
+    });
+};
+const ondaWordChecked = (req, res) => {
+  mongodb.OndaWords.find(
+    {
+      word: req.params.word,
+    },
+    (err, doc) => {
+      if (err || doc.length === 0) {
+        res.status(204);
+        res.json("fallo en el servidor");
       } else {
         res.status(200);
         res.json(doc);
       }
-    });
+    }
+  );
 };
+const ondaWordRegister = (req, res) => {
+  const saltRounds = 12;
+  mongodb.OndaWords.find({ word: req.body.word }, (err, data) => {
+    if (err || data.length === 0) {
+      bcrypt.hash(req.body.onda, saltRounds, (err, hash) => {
+        try {
+          mongodb.OndaWords.insertMany(
+            {
+              word: req.body.word,
+              onda: hash,
+            },
+            (err) => {
+              if (err) {
+                res.status(204).send("error en el servidor");
+              } else {
+                res.status(200);
+                res.json("creado exitosamente");
+              }
+            }
+          );
+        } catch {
+          res.status(204).send("error en el servidor");
+        }
+      });
+    } else {
+      res.status(204).send("error en el servidor");
+    }
+  });
+};
+const checkToken = (req, res) => {
+  jwt.verify(req.headers.autorizations, "my_secret_token", (err) => {
+    if (err) {
+      res.status(204);
+      res.json("fallo en el servidor");
+    } else {
+      res.status(200);
+      res.json("usuario correcto");
+    }
+  });
+};
+const checkOndaWord = (req, res) => {
+  mongodb.OndaWords.find({ _id: req.body.id }).exec((err, doc) => {
+    if (err || doc.length === 0) {
+      console.log(err);
+      res.status(204);
+      res.json("fallo en el servidor");
+    } else {
+      try {
+        bcrypt.compare(req.body.onda, doc[0].onda, (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(204);
+            res.json("fallo en el servidor");
+          } else {
+            if (result) {
+              var token = jwt.sign({ idword: doc._id }, "my_secret_token", {
+                expiresIn: "1d",
+              });1
+              let data = {
+                id: doc[0]._id,
+                token: token,
+              };
+              res.status(200);
+              res.json(data);
+            } else {
+              res.status(204);
+              res.json("usuario incorrecto");
+            }
+          }
+        });
+      } catch {
+        res.status(204);
+        res.json("usuario incorrecto");
+      }
+    }
+  });
+};
+
 module.exports = {
+  checkToken,
+  ondaWordChecked,
+  ondaWordRegister,
+  checkOndaWord,
+  getRandomOndaWord,
   getByUserIdReservation,
   setNewReservation,
   setNewUser,

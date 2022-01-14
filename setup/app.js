@@ -10,12 +10,12 @@ const express = require("express"),
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
   
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+  app.use(
+    cors({
+      origin: "*",
+      credentials: true,
+    })
+  );
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/", usuarioRuta);
