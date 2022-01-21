@@ -9,6 +9,223 @@ const mongodb = require("../models/models"),
 const prueba = (req, res) => {
   res.status(200).send("Hola api");
 };
+const updateNewVictoryDriver = (req, res) => {
+  const id = req.body.id;
+  const data = req.body.data;
+  mongodb.Driver.updateOne(
+    {
+      _id: id,
+    },
+    {
+      $push: {
+        victorias: data,
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const insertRecordDriver = (req, res) => {
+  const id = req.body.id;
+  const data = req.body.data;
+  mongodb.Driver.updateOne(
+    {
+      _id: id,
+    },
+    {
+      $push: {
+        records: data,
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const updateRecordDriver = (req, res) => {
+  const id = req.body.id;
+  const idTrack = req.body.idTrack;
+  const data = req.body.data;
+  mongodb.Driver.updateOne(
+    {
+      _id: id,
+      "records.pista": idTrack
+    },
+    {
+      $set: {
+        "records.$.tiempo": data,
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const deleteRecordDriver = (req, res) => {
+  const id = req.body.id;
+  const data = req.body.data;
+  mongodb.Driver.updateOne(
+    {
+      _id: id,
+    },
+    {
+      $pull: {
+        records: data,
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const updateFavoriteTrackDriver = (req, res) => {
+  const id = req.body.id;
+  const data = req.body.data;
+  mongodb.Driver.updateOne(
+    {
+      _id: id,
+    },
+    data,
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const findByIdDriver = (req, res) => {
+  const id = req.query.idDriver;
+  if (id) {
+    mongodb.Driver.findOne({
+      _id: id,
+    })
+      .populate({
+        path: "victorias.pista",
+        select: "nombre pais",
+      })
+      .populate({
+        path: "victorias.campeonato",
+      })
+      .populate({
+        path: "records.pista",
+        select: "nombre pais",
+      })
+      .populate({
+        path: "pistaFavorita",
+        select: "nombre pais",
+      })
+      .exec((err, doc) => {
+        if (err || doc.length === 0) {
+          res.status(400);
+          res.json({
+            error: "no text",
+          });
+        } else {
+          res.status(200);
+          res.json(doc);
+        }
+      });
+  } else {
+    res.status(400);
+    res.json({
+      error: "no text",
+    });
+  }
+};
+const testArr = (req, res) => {
+  mongodb.TestArr.create(req.body, (err, doc) => {
+    if (err) {
+      res.status(400);
+      res.json({
+        error: "no text",
+      });
+    } else {
+      res.status(200);
+      res.json(doc);
+    }
+  });
+};
+const testUpdateArr = (req, res) => {
+  mongodb.TestArr.updateOne(
+    { name: req.body.name },
+    {
+      $push: {
+        arr: req.body.arr,
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
+const testUnsetArr = (req, res) => {
+  mongodb.TestArr.updateOne(
+    { name: req.body.name },
+    {
+      $pull: {
+        arr: { _id: req.body.idArr },
+      },
+    },
+    (err, doc) => {
+      if (err) {
+        res.status(400);
+        res.json({
+          error: "no text",
+        });
+      } else {
+        res.status(200);
+        res.json(doc);
+      }
+    }
+  );
+};
 const createRecord = (req, res) => {
   mongodb.Record.create(req.body, (err) => {
     if (err) {
@@ -808,7 +1025,8 @@ const checkOndaWord = (req, res) => {
             if (result) {
               var token = jwt.sign({ idword: doc._id }, "my_secret_token", {
                 expiresIn: "1d",
-              });1
+              });
+              1;
               let data = {
                 id: doc[0]._id,
                 token: token,
@@ -830,6 +1048,10 @@ const checkOndaWord = (req, res) => {
 };
 
 module.exports = {
+  updateRecordDriver,
+  insertRecordDriver,
+  deleteRecordDriver,
+  findByIdDriver,
   checkToken,
   ondaWordChecked,
   ondaWordRegister,
@@ -882,4 +1104,9 @@ module.exports = {
   findPointsDriverChampionship,
   findAllScuderiasChampionship,
   findChampionshipScuderias,
+  updateNewVictoryDriver,
+  testArr,
+  testUpdateArr,
+  testUnsetArr,
+  updateFavoriteTrackDriver,
 };

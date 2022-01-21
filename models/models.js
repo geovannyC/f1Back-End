@@ -174,15 +174,52 @@ const fasLapDriver = Schema({
   time: Array,
   posicion: Number,
 });
+const testArr = Schema(
+  {
+    name: String,
+    arr: [
+      {
+        name: String,
+      },
+    ],
+  },
+  { timestamps: true }
+);
 const driver = Schema(
   {
     nombre: String,
     alias: String,
     carpetaPiloto: String,
     carpetaCoche: String,
-    victorias: Number,
-    records: Array,
-    vueltasRapidas: Number,
+    victorias: [
+      {
+        pista: {
+          type: mongoose.Schema.ObjectId,
+          ref: "track",
+        },
+        campeonato: {
+          type: mongoose.Schema.ObjectId,
+          ref: "championship",
+        },
+      },
+    ],
+    records: [
+      {
+        pista: {
+          type: mongoose.Schema.ObjectId,
+          ref: "track",
+        },
+        tiempo: {
+          minuto: Number,
+          segundo: Number,
+          decima: Number,
+        },
+      },
+    ],
+    pistaFavorita: {
+      type: mongoose.Schema.ObjectId,
+      ref: "track",
+    },
   },
   {
     timestamps: true,
@@ -247,12 +284,10 @@ const championshipdriver = Schema(
     timestamps: true,
   }
 );
-const ondaWords = Schema(
-  {
-    word: String,
-    onda: String,
-  }
-);
+const ondaWords = Schema({
+  word: String,
+  onda: String,
+});
 const Track = mongoose.model("track", track),
   OndaWords = mongoose.model("ondaWords", ondaWords),
   Driver = mongoose.model("driver", driver),
@@ -271,7 +306,8 @@ const Track = mongoose.model("track", track),
     "championshipScuderia",
     championshipScuderia
   ),
-  ChampionshipDriver = mongoose.model("championshipdriver", championshipdriver);
+  ChampionshipDriver = mongoose.model("championshipdriver", championshipdriver),
+  TestArr = mongoose.model("testArr", testArr);
 
 module.exports = {
   OndaWords,
@@ -287,4 +323,5 @@ module.exports = {
   FasLapDriver,
   ChampionshipScuderia,
   ChampionshipDriver,
+  TestArr,
 };
